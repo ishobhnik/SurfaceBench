@@ -32,7 +32,7 @@ project
     
     Install other packages for each search method from their original github repositories.
 
-    - [llmsr](https://drive.google.com/drive/folders/1TVhvzfR8eVD0bDpVmNcaHa_9hkgX0av3)
+    - [llmsr](https://github.com/deep-symbolic-mathematics/LLM-SR)
 
     - [lasr](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl)
 
