@@ -64,7 +64,7 @@ Options for datasets are:
 The run will create log files at the `logs` folder. You can resume your run with option `--resume_from <log_dir>`. For example, 
 `--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953`. This will skip finished equations.
 
-Examples of running script with a local LLM:
+Examples of usage with a local LLM:
 ```python
 # Starting VLLM server
 CUDA_VISIBLE_DEVICES=5 vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 --port 10005
