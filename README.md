@@ -55,7 +55,7 @@ project
     
 Options for datasets are:
 * feynman
-* inv_feynman (lsr-transform)
+* lsrtransform (lsr-transform)
 * matsci (lsr-synth)
 * chem_react (lsr-synt)
 * phys_osc (lsr-synth)
