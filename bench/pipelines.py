@@ -93,15 +93,18 @@ class EvaluationPipeline:
             
             outs = self.run_and_evaluate(searcher, problem)
 
-            log_data = []
+            # log_data = []
+            log_data = {
+                'equation_id': problem.equation_idx,
+                'gt_equation': problem.gt_equation.expression,
+                'num_datapoints': len(problem.train_samples),
+                'num_eval_datapoints': len(problem.test_samples),
+            }
+            eval_results = []
             for out in outs:
                 eq_str_format = out['search_result'].equation.expression
                 eq_program_format = out['search_result'].equation.program_format
-                log_data.append({
-                    'equation_id': problem.equation_idx,
-                    'gt_equation': problem.gt_equation.expression,
-                    'num_datapoints': len(problem.train_samples),
-                    'num_eval_datapoints': len(problem.test_samples),
+                eval_results.append({
                     'search_time': out['search_time'],
                     'discovered_equation': eq_str_format,
                     'discovered_program': eq_program_format,
@@ -109,10 +112,9 @@ class EvaluationPipeline:
                     'ood_metrics': out['ood_metrics'],
                     **out['search_result'].aux
                 })
-
+            log_data['eval_results'] = eval_results
             with open(output_file_path, mode='a') as f:
-                for o in log_data:
-                    f.write(json.dumps(o, allow_nan=True) + "\n")
+                f.write(json.dumps(log_data, allow_nan=True) + "\n")
 
             visited_eqids.append(problem.equation_idx)
 

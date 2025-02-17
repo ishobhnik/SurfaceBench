@@ -36,7 +36,6 @@ def get_perf_feedback(losses: dict[str, list[float]], params: dict[str, list[flo
             feedbacks.append(msg)
 
         # feedbacks.append('')  # add a blank line
-
         feedbacks.append('#### Loss training curves (versus iteration)')
         feedbacks.append('')  # add a blank line
         for tag, traj in sorted(losses.items()):
@@ -54,9 +53,6 @@ def get_perf_feedback(losses: dict[str, list[float]], params: dict[str, list[flo
                 tag = f'{tag} (Key loss)'
             msg = f'- {tag}: [{msg}]'
             feedbacks.append(msg)
-
-    # print(feedbacks)
-
     return feedbacks
 
 class SGASearcher(BaseSearcher):
@@ -233,7 +229,7 @@ class SGASearcher(BaseSearcher):
                     params = None
                     states = None
                     population.add_offspring(ind_choice, feedback, fitness, losses, params, states, ind_root)
-
+        
         return [
             # SearchResult(
             #     equation=best_equation,

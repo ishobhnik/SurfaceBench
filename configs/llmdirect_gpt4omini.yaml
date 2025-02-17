@@ -1,4 +1,4 @@
-name: LlmsrDirect_Llama31-8b
+name: LlmDirect-Gpt4omini
 class_name: LLMSRSearcher
 api_type: "openai"
 api_model: "gpt-4o-mini-2024-07-18"
