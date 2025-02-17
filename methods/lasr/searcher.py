@@ -19,7 +19,8 @@ class LasrSearcher(BaseSearcher):
     def __init__(self,
                  name, 
                  api_key, model, model_url, prompts_path, 
-                 log_path, 
+                 log_path,
+                 temp_dir,
                  num_iterations=25, 
                  num_populations=10,
                  early_stopping_condition=None,
@@ -65,6 +66,7 @@ class LasrSearcher(BaseSearcher):
             var_order=None,
         )
         self.log_path = log_path
+        self._temp_dir = temp_dir
 
     def discover(self, task: SEDTask):
         info = task
@@ -84,8 +86,7 @@ class LasrSearcher(BaseSearcher):
 
         set_llm_options["llm_context"] = desc
         set_llm_options['var_order'] = {"x" + str(i): s for i, s in enumerate(info.symbols[1:])}
-        print('var_order', set_llm_options['var_order'])
-        temp_dir = "logs/temp/lasr_runs"
+        temp_dir = self._temp_dir
 
         # Refer to https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl/blob/lasr-experiments/experiments/model.py
         model = PySRRegressor(

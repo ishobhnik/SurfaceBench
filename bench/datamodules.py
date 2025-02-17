@@ -188,16 +188,16 @@ class PhysOscilDataModule(BaseSynthDataModule):
                          default_symbol_descs=['Acceleration in Nonl-linear Harmonic Oscillator', 'Position at time t', 'Time', 'Velocity at time t'])
 
 def get_datamodule(name, root_folder):
-    if name == 'bio':
+    if name == 'bio_pop_growth':
         root = root_folder or "datasets/lsr-synth-bio"
         return BioPopGrowthDataModule(root)
-    elif name == 'chem':
+    elif name == 'chem_react':
         root = root_folder or "datasets/lsr-synth-chem"
         return ChemReactKineticsDataModule(root)
-    elif name == 'mat':
+    elif name == 'matsci':
         root = root_folder or "datasets/lsr-synth-matsci"
         return MatSciDataModule(root)
-    elif name == 'phys':
+    elif name == 'phys_osc':
         root = root_folder or "datasets/lsr-synth-phys"
         return PhysOscilDataModule(root)
     elif name == 'feynman':

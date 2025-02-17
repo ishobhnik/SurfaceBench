@@ -14,9 +14,8 @@ load_dotenv()
 
 parser = ArgumentParser()
 parser.add_argument('--searcher_config', type=str, required=True)
-parser.add_argument('--dataset', type=str, default="feynman")
+parser.add_argument('--dataset', type=str, required=True)
 parser.add_argument('--ds_root_folder', type=str, default=None)
-parser.add_argument('--from_to', nargs=2, required=False, default=None)
 parser.add_argument('--resume_from', type=str, default=None)
 parser.add_argument('--problem_name', type=str, default=None)
 parser.add_argument('--local_llm_port', type=int, default=None)
@@ -33,6 +32,12 @@ with open(args.searcher_config) as f:
     searcher_cfg = yaml.safe_load(f)
 searcher_cfg = Namespace(**searcher_cfg)
 
+# Set up output directories for logging results
+# If not resuming from previous run:
+#   - Create new timestamped output directory under logs/{dataset}/{searcher}/
+# If resuming:
+#   - Use existing directory specified by resume_from argument
+# Creates search_logs subdirectory and sets searcher's log path
 if args.resume_from is None:
     output_path = Path(f"logs/{dm.name}/{searcher_cfg.name}/{now_str}")
     output_path.mkdir(parents=True, exist_ok=True)
@@ -40,6 +45,9 @@ else:
     output_path = Path(args.resume_from)
 searcher_log_path = output_path / "search_logs"
 searcher_log_path.mkdir(exist_ok=True, parents=True)
+
+temp_dir = Path("logs/tmp")
+temp_dir.mkdir(exist_ok=True, parents=True)
 
 # Set API key based on the searcher configuration type
 # hfinf: HuggingFace Inference API
@@ -86,31 +94,22 @@ if searcher_cfg.class_name == 'LLMSRSearcher':
                             cfg, 
                             sampler_class,
                             global_max_sample_num=searcher_cfg.global_max_sample_num, 
-                            log_path=f"logs/llmsr_runs/{dm.name}/{now_str}")
+                            log_path=searcher_log_path)
 elif searcher_cfg.class_name == 'LasrSearcher':
     sys.path.append(os.path.join(os.path.dirname(__file__), "methods"))
     from methods.lasr.searcher import LasrSearcher
+
     searcher = LasrSearcher(
         name=searcher_cfg.name,
         api_key=api_key,
         model=searcher_cfg.api_model,
         model_url=searcher_cfg.api_url,
         prompts_path='methods/lasr/prompts/',
-        log_path=None,
+        log_path=searcher_log_path,
+        temp_dir=temp_dir,
         num_iterations=searcher_cfg.num_iterations,
         num_populations=searcher_cfg.num_populations,
         llm_weight=searcher_cfg.llm_weight,
-        early_stopping_condition=searcher_cfg.early_stopping_condition,
-        max_num_samples=searcher_cfg.max_num_samples,
-    )
-elif searcher_cfg.class_name == 'PysrSearcher':
-    sys.path.append(os.path.join(os.path.dirname(__file__), "methods"))
-    from methods.pysr.searcher import PySRSearcher
-    searcher = PySRSearcher(
-        name=searcher_cfg.name,
-        log_path='/home/kappa/workspace/EquationDiscovery/SEDBench-LLM/tmp',
-        num_iterations=searcher_cfg.num_iterations,
-        num_populations=searcher_cfg.num_populations,
         early_stopping_condition=searcher_cfg.early_stopping_condition,
         max_num_samples=searcher_cfg.max_num_samples,
     )
@@ -121,7 +120,7 @@ elif searcher_cfg.class_name == 'SGASearcher':
         name=searcher_cfg.name,
         root=Path("methods/sga_sr").absolute(),
         path=str(searcher_log_path.absolute()),
-        python_path='/home/kappa/miniconda3/envs/sga/bin/python',
+        python_path=os.environ['SGA_PYTHON_PATH'],
         dataset_name=args.dataset,
         dataset_path=args.ds_root_folder,
         llm_api_url=searcher_cfg.api_url,
@@ -130,25 +129,6 @@ elif searcher_cfg.class_name == 'SGASearcher':
     )
 else:
     raise ValueError
-
-
-
-
-# Set up output directories for logging results
-# If not resuming from previous run:
-#   - Create new timestamped output directory under logs/{dataset}/{searcher}/
-# If resuming:
-#   - Use existing directory specified by resume_from argument
-# Creates search_logs subdirectory and sets searcher's log path
-if args.resume_from is None:
-    output_path = Path(f"logs/{dm.name}/{searcher}/{now_str}")
-    output_path.mkdir(parents=True, exist_ok=True)
-else:
-    output_path = Path(args.resume_from)
-searcher_log_path = output_path / "search_logs"
-searcher_log_path.mkdir(exist_ok=True, parents=True)
-searcher.log_path = str(searcher_log_path)
-
 
 # Filter problems based on command line arguments:
 # - If problem_name is specified, only keep that specific problem
