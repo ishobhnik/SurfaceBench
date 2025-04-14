@@ -138,3 +138,18 @@ num_islands: 10
 ```
 
 The `eval.py` will load the config to initialize a searcher.
+
+## Citation
+
+>
+
+## License
+
+This repository is licensed under MIT licence.
+
+This work is built on top of other open source projects, including [LLM-SR](https://github.com/deep-symbolic-mathematics/llm-sr), [LaSR](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl), [SGA](https://github.com/PingchuanMa/SGA) and [PySR](https://github.com/MilesCranmer/PySR). We thank the original contributors of these works for open-sourcing their valuable source codes. 
+
+
+## Contact Us
+
+For any questions or issues, you are welcome to open an issue in this repo, or contact us at parshinshojaee@vt.edu, and ngochieutb13@gmail.com .
