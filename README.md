@@ -17,7 +17,7 @@ and **LSR-Synth**, which introduces synthetic, discovery-driven problems requiri
 
 ## Updates
 
-* **14 Apr, 2025**: Primary release
+* **14 Apr, 2025**: Primary release of benchmark and evaluation code
 
 ## Get Started
 
