@@ -14,9 +14,10 @@ and **LSR-Synth**, which introduces synthetic, discovery-driven problems requiri
 
 ![](images/task_sed.png)
 
+
 ## Updates
 
-* **13 Apr, 2025**: Primary release
+* **14 Apr, 2025**: Primary release
 
 ## Get Started
 
@@ -40,17 +41,17 @@ You also need to install other packages for each search method from their origin
 
 ### Datasets
 
-The data for the benchmark will be automatically downloaded.
+The data for the benchmark will be automatically downloaded from [huggingface](https://huggingface.co/datasets/nnheui/llm-srbench).
 
 ### Supported methods
 
-We provide implementation for [llmsr](https://github.com/deep-symbolic-mathematics/LLM-SR), [lasr](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl), [SGA](https://github.com/PingchuanMa/SGA) in the `methods` folder.
+We provide implementation for [LLMSR](https://github.com/deep-symbolic-mathematics/LLM-SR), [LaSR](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl), [SGA](https://github.com/PingchuanMa/SGA) in the `methods` folder.
 
-In order to include a new method, please refer to the implementing section for detailed instructions on how to add a new search method to the project. This includes setting up the necessary configurations, implementing the searcher class, and ensuring compatibility with the existing framework.
+In order to include a new method, please refer to the implementation section for detailed instructions on how to add a new discovery method to the project. This includes setting up the necessary configurations, implementing the searcher class, and ensuring compatibility with the existing framework.
 
-### How to runs
+### How to run
 1. Activate the appropriate conda environment.
-2. Launch a local LLM server. While our implementation utilizes vllm, you can opt for other libraries as long as you implement the necessary functionality in the searcher class. For example, to start the server with the vllm library, use the command: `vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 --port 10005`.
+2. Launch a local LLM server. While our implementation utilizes `vllm`, you can also opt for other libraries as long as you implement the necessary functionality in the searcher class. For example, to start the server with the vllm library, use the command: `vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 --port 10005`.
 
 3. Configure the environment variables in the `.env` file. Duplicate `.env.example` to `.env` and specify the following:
    - `VLLM_API_KEY`: Your API key for the local vLLM server (e.g., 'token-abc123').
@@ -74,6 +75,7 @@ In order to include a new method, please refer to the implementing section for d
 The execution will generate log files in the `logs` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
 `--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953` will bypass already completed equations.
 
+### Project Structure
 The working directory structure will be as follows:
 
 ```
@@ -103,7 +105,7 @@ Please take a look at `example_script.sh` for examples of usage with a local LLM
 
 ## Implementing a new searcher
 
-To implement a new searcher, you must create a class that inherits from the base class `BaseSearcher`. This base class provides the foundational structure for your searcher, including essential methods that need to be overridden.
+To implement a new searcher, you must create a class that inherits from the base class `BaseSearcher`. This base class provides the foundational structure for your LLM-based searcher, including essential methods that need to be overridden.
 
 ```python
 class BaseSearcher:
@@ -121,9 +123,9 @@ class BaseSearcher:
         return self._name
 ```
 
-The input `task` will provide a description of the target equation, description of input variables, and training data points.
+The input `task` will provide a description of the target equation, input variables, and training data points.
 
-An example of searcher is
+An example of a searcher is
 ```python
 class DirectPromptingSearcher(BaseSearcher):
     def __init__(self, name, num_sample, api_type, api_model, api_url):
@@ -161,7 +163,7 @@ class DirectPromptingSearcher(BaseSearcher):
         ]
 ```
 
-Once you’ve implemented your searcher, create a corresponding configuration file in the configs folder. For example:
+Once you’ve implemented your searcher, create a corresponding configuration file in the `configs/` folder. For example:
 
 ```yaml
 name: DirectPrompting-Llama31_8b
@@ -172,17 +174,22 @@ api_url: "http://localhost:{}/v1/"
 num_samples: 1000
 ```
 
-To evaluate with this searcher, run eval.py and provide the path to its configuration file; this will load the settings and initiate the evaluation process.
+To evaluate with this searcher, run `eval.py` and provide the path to its configuration file; this will load the settings and initiate the evaluation process on the specified dataset.
 
 ## Citation
+Read our [paper](.) for more information about the benchmark (or contact us ☺️). If you find our code and data helpful, please cite us with
+
+<pre>
+...
+</pre>
 
 ## License
 
 This repository is licensed under MIT licence.
 
-This work is built on top of other open source projects, including [LLM-SR](https://github.com/deep-symbolic-mathematics/llm-sr), [LaSR](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl), [SGA](https://github.com/PingchuanMa/SGA) and [PySR](https://github.com/MilesCranmer/PySR). We thank the original contributors of these works for open-sourcing their valuable source codes. 
+This work is built on top of other open source projects, including [LLM-SR](https://github.com/deep-symbolic-mathematics/llm-sr), [LaSR](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl), [SGA](https://github.com/PingchuanMa/SGA), and [PySR](https://github.com/MilesCranmer/PySR), and is inspired by the effort behind [srbench](https://github.com/cavalab/srbench). We thank the original contributors of these works for open-sourcing their valuable source codes. 
 
 
 ## Contact Us
 
-For any questions or issues, you are welcome to open an issue in this repo, or contact us at parshinshojaee@vt.edu, and ngochieutb13@gmail.com .
+For any questions or issues, you are welcome to open an issue in this repo, or contact us at parshinshojaee@vt.edu and ngochieutb13@gmail.com .
