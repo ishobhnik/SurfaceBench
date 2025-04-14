@@ -3,7 +3,7 @@
 This is the official repository for the paper "LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models"
 
 [![Paper](https://img.shields.io/badge/arXiv-XXX.XXX-b31b1b.svg)](XXX.XXX)
-[![Benchmark Dataset](https://img.shields.io/badge/🤗_Hugging_Face-nnheui/llm--srbench-ffbd00.svg)](https://huggingface.co/datasets/nnheui/llm-srbench)
+[![Benchmark Dataset](https://img.shields.io/badge/🤗_Benchmark_Dataset-llm--srbench-ffbd00.svg)](https://huggingface.co/datasets/nnheui/llm-srbench)
 
 
 
