@@ -1,6 +1,5 @@
 import numpy as np
 import sympy
-# from sympy import *
 
 # useful constants
 pi = np.pi
@@ -18,6 +17,18 @@ acos = np.arccos
 cosh = np.cosh
 atan = np.arctan
 acosh = np.arccosh
+
+local_symbols = {"N": sympy.Symbol('N'), 
+                "Q": sympy.Symbol('Q'), 
+                "Ef": sympy.Symbol('E1'), 
+                "q2": sympy.Symbol('q2'), 
+                "gamma": sympy.Symbol('gamma'), 
+                "alpha": sympy.Symbol('alpha'), 
+                "omega": sympy.Symbol('omega'), 
+                "beta": sympy.Symbol('beta'), 
+                "I": sympy.Symbol('I'), 
+                "lambda": sympy.Symbol('lambda'), 
+                "E": sympy.Symbol('E')}
 
 def evaluate_expression(expression, symbols, input_values):
     '''
@@ -37,18 +48,6 @@ def evaluate_expression(expression, symbols, input_values):
     Y = np.array(Y)
 
     return Y
-
-local_symbols = {"N": sympy.Symbol('N'), 
-                "Q": sympy.Symbol('Q'), 
-                "Ef": sympy.Symbol('E1'), 
-                "q2": sympy.Symbol('q'), 
-                "gamma": sympy.Symbol('gamma'), 
-                "alpha": sympy.Symbol('alpha'), 
-                "omega": sympy.Symbol('omega'), 
-                "beta": sympy.Symbol('beta'), 
-                "I": sympy.Symbol('I'), 
-                "lambda": sympy.Symbol('lambda'), 
-                "E": sympy.Symbol('E2')}
 
 def strexpression2sympy(eq_text, locals=local_symbols):
     eq_text = eq_text.replace("π", "pi").replace("ε", "epsilon").replace("·", "*")
