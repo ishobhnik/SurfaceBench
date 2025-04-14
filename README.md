@@ -1,4 +1,4 @@
-# `LLM-SRBench`: A New Benchmark for Scientific Equation Disscovery (Symbolic Regression) with LLMs
+# `LLM-SRBench`: Benchmark for Scientific Equation Discovery or Symbolic Regression with LLMs
 
 This is the official repository for the paper "LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models"
 
