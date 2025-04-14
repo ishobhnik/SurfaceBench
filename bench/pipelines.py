@@ -1,13 +1,11 @@
 from typing import List
 
 from pathlib import Path
-import time
-import numpy as np
-from .dataclasses import Problem, SearchResult
-
-from bench.searchers.base import BaseSearcher
 import json
-
+import numpy as np
+import time
+from .dataclasses import Problem, SearchResult
+from .searchers.base import BaseSearcher
 from scipy.stats import kendalltau
 from sklearn.metrics import mean_absolute_percentage_error
 
