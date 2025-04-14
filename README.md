@@ -7,13 +7,12 @@ This is the official repository for the paper "LLM-SRBench: A New Benchmark for 
 
 
 
+## Overview
+In this paper, we introduce **LLM-SRBench**, a comprehensive benchmark with $239$ challenging problems across four scientific domains specifically designed to evaluate LLM-based scientific equation discovery methods while preventing trivial memorization.
+Our benchmark comprises two main categories: **LSR-Transform**, which transforms common physical models into less common mathematical representations to test reasoning beyond memorized forms,
+and **LSR-Synth**, which introduces synthetic, discovery-driven problems requiring data-driven reasoning.
 
 ![](images/task_sed.png)
-
-## Overview
-In this paper, we introduce LLM-SRBench, a comprehensive benchmark with $239$ challenging problems across four scientific domains specifically designed to evaluate LLM-based scientific equation discovery methods while preventing trivial memorization.
-Our benchmark comprises two main categories: LSR-Transform, which transforms common physical models into less common mathematical representations to test reasoning beyond memorization,
-and LSR-Synth, which introduces synthetic, discovery-driven problems requiring data-driven reasoning.
 
 ## Updates
 
