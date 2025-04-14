@@ -9,8 +9,6 @@ This is the official repository for the paper "LLM-SRBench: A New Benchmark for 
 In this paper, we introduce LLM-SRBench, a comprehensive benchmark with $239$ challenging problems across four scientific domains specifically designed to evaluate LLM-based scientific equation discovery methods while preventing trivial memorization.
 Our benchmark comprises two main categories: LSR-Transform, which transforms common physical models into less common mathematical representations to test reasoning beyond memorization,
 and LSR-Synth, which introduces synthetic, discovery-driven problems requiring data-driven reasoning.
-Through extensive evaluation of several state-of-the-art methods on LLM-SRBench, using both open and closed LLMs, we find that the best-performing system so far achieves only $31.5\%$ symbolic accuracy.
-These findings highlight the challenges of scientific equation discovery, positioning LLM-SRBench as a valuable resource for future research.
 
 ## Updates
 
@@ -47,33 +45,32 @@ We provide implementation for [llmsr](https://github.com/deep-symbolic-mathemati
 In order to include a new method, please refer to the implementing section for detailed instructions on how to add a new search method to the project. This includes setting up the necessary configurations, implementing the searcher class, and ensuring compatibility with the existing framework.
 
 ### How to runs
-1. Select the correct conda environment
-2. Start a local LLM server. Our implementation using vllm but you can use any other libraries and just need to implement it in the searcher class.
-3. Set correct values for environment variables in `.env` file. Copy `.env.example` to `.env` and set:
-   - `VLLM_API_KEY`: API key for local vLLM server (e.g. 'token-abc123')
-   - `OPENAI_API_KEY`: OpenAI API key if using OpenAI models
-   - `SGA_PYTHON_PATH`: Path to Python executable in your SGA conda environment if using SGA searcher.
+1. Activate the appropriate conda environment.
+2. Launch a local LLM server. While our implementation utilizes vllm, you can opt for other libraries as long as you implement the necessary functionality in the searcher class. For example, to start the server with the vllm library, use the command: `vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 --port 10005`.
 
-4. Run the `eval.py` script with the following arguments:
-   - `--searcher_config`: Path to YAML config file for the searcher (required)
-   - `--dataset`: Name of dataset to evaluate (required)
-   - `--ds_root_folder`: Root folder containing dataset files (optional)
-   - `--resume_from`: Path to previous run directory to resume from (optional)
-   - `--problem_name`: Name of specific problem to evaluate (optional)
-   - `--local_llm_port`: Port number for local LLM server (optional)
-    
-    Options for datasets are:
-    * feynman
-    * lsrtransform (lsr-transform)
-    * matsci (lsr-synth)
-    * chem_react (lsr-synt)
-    * phys_osc (lsr-synth)
-    * bio_pop_growth (lsr-synth)
+3. Configure the environment variables in the `.env` file. Duplicate `.env.example` to `.env` and specify the following:
+   - `VLLM_API_KEY`: Your API key for the local vLLM server (e.g., 'token-abc123').
+   - `OPENAI_API_KEY`: Your OpenAI API key if you are utilizing OpenAI models.
+   - `SGA_PYTHON_PATH`: The path to the Python executable in your SGA conda environment if you are using the SGA searcher.
 
-The run will create log files at the `logs` folder. You can resume your run with option `--resume_from <log_dir>`. For example, 
-`--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953`. This will skip finished equations.
+4. Execute the `eval.py` script with the required arguments:
+   - `--searcher_config`: Path to the YAML configuration file for the searcher (mandatory).
+   - `--dataset`: The name of the dataset to evaluate (mandatory).
+   - `--resume_from`: The path to a previous run directory to continue from (optional).
+   - `--problem_name`: The specific problem name to evaluate (optional).
+   - `--local_llm_port`: The port number for the local LLM server (optional).
 
-The working directory will be in the following format:
+   Available dataset options include:
+   * lsrtransform (lsr-transform)
+   * matsci (lsr-synth)
+   * chem_react (lsr-synth)
+   * phys_osc (lsr-synth)
+   * bio_pop_growth (lsr-synth)
+
+The execution will generate log files in the `logs` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
+`--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953` will bypass already completed equations.
+
+The working directory structure will be as follows:
 
 ```
 project
@@ -102,7 +99,7 @@ Please take a look at `example_script.sh` for examples of usage with a local LLM
 
 ## Implementing a new searcher
 
-A new searcher will need to inherit the following base class
+To implement a new searcher, you must create a class that inherits from the base class `BaseSearcher`. This base class provides the foundational structure for your searcher, including essential methods that need to be overridden.
 
 ```python
 class BaseSearcher:
@@ -111,10 +108,8 @@ class BaseSearcher:
 
     def discover(self, task: SEDTask) -> List[SearchResult]:
         '''
-        
         Return:
-            equations
-            aux
+            List of SearchResult
         '''
         raise NotImplementedError
 
@@ -124,24 +119,58 @@ class BaseSearcher:
 
 The input `task` will provide a description of the target equation, description of input variables, and training data points.
 
-After implementing your searcher, you will need to create a config file in the `configs` folder. An example is
+An example of searcher is
+```python
+class DirectPromptingSearcher(BaseSearcher):
+    def __init__(self, name, num_sample, api_type, api_model, api_url):
+        super().__init__(name)
+        self.num_samples = num_samples
+        self.llm = LLM(api_type, api_model, api_url)
+
+    def discover(self, task: SEDTask):
+        dataset = task.samples
+        symbol_descs = task.symbol_descs
+
+        prompt = f"Find the mathematical function skeleton that represents {symbol_descs[0]}, given data on {", ".join(symbol_descs[1:-1]) + ", and " + symbol_descs[-1]}"
+        
+        best_program, best_score = None, -np.inf
+        for _ in range(self.num_samples):
+            program_str, aux = self.llm.sample_program(prompt)
+            score = evaluate(program_str, dataset)
+            if score > best_score:
+                best_program = program_str
+
+        best_equation = Equation(
+            symbols=info["symbols"],
+            symbol_descs=info["symbol_descs"],
+            symbol_properties=info["symbol_properties"],
+            expression=None,
+            program_format = best_program,
+            lambda_format = programstr2lambda(best_program)
+        )
+
+        return [
+            SearchResult(
+                equation=best_equation,
+                aux=aux
+            )
+        ]
+```
+
+Once you’ve implemented your searcher, create a corresponding configuration file in the configs folder. For example:
 
 ```yaml
-name: Llmsr-Llama31_8b
-class_name: LLMSRSearcher
+name: DirectPrompting-Llama31_8b
+class_name: DirectPromptingSearcher
 api_type: "vllm"
 api_model: "meta-llama/Llama-3.1-8B-Instruct"
 api_url: "http://localhost:{}/v1/"
-global_max_sample_num: 1000
-samples_per_prompt: 4
-num_islands: 10
+num_samples: 1000
 ```
 
-The `eval.py` will load the config to initialize a searcher.
+To evaluate with this searcher, run eval.py and provide the path to its configuration file; this will load the settings and initiate the evaluation process.
 
 ## Citation
-
->
 
 ## License
 
