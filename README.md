@@ -76,7 +76,7 @@ vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 
    * phys_osc (lsr-synth)
    * bio_pop_growth (lsr-synth)
   
-For example, for running `llmsr` method on the `lsrtransform` dataset, you can use the following command:
+For example, for running `llmsr` method on the `lsrtransform` dataset with open LLM backbone `llama31_8b` on local server, you can use the following command:
 
 ```
 python eval.py --dataset lsrtransform --searcher_config configs/llmsr_llama31_8b.yaml --local_llm_port 10005
