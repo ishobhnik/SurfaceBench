@@ -82,7 +82,7 @@ For example, for running `llmsr` method on the `lsrtransform` dataset with open 
 python eval.py --dataset lsrtransform --searcher_config configs/llmsr_llama31_8b.yaml --local_llm_port 10005
 ```
 
-More evaluation scripts for running discovery methods with different LLM backbones on different datasets are provided in `example_script.sh` scripts. 
+More evaluation scripts for running discovery methods with different LLM backbones on different datasets are provided in `example_script.sh`. 
 
 The execution of `eval.py` will generate log files in the `logs` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
 `--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953` will bypass already completed equations.
