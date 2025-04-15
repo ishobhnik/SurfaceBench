@@ -36,7 +36,7 @@ Note: Requires Python ≥ 3.9
 You also need to install other packages for each search method from their original github repositories.
   - [llmsr](https://github.com/deep-symbolic-mathematics/LLM-SR)
   - [lasr](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl)
-  - [SGA](https://github.com/PingchuanMa/SGA)
+  - [sga](https://github.com/PingchuanMa/SGA)
 
 
 ### Datasets
