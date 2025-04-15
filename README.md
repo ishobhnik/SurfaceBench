@@ -45,7 +45,7 @@ The data for the benchmark will be automatically downloaded from [huggingface](h
 
 ### Supported methods
 
-We provide implementation for [LLMSR](https://github.com/deep-symbolic-mathematics/LLM-SR), [LaSR](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl), [SGA](https://github.com/PingchuanMa/SGA) in the `methods` folder.
+We provide implementation for [LLMSR](https://github.com/deep-symbolic-mathematics/LLM-SR), [LaSR](https://github.com/trishullab/LibraryAugmentedSymbolicRegression.jl), [SGA](https://github.com/PingchuanMa/SGA) in the `methods/` folder.
 
 In order to include a new method, please refer to the implementation section for detailed instructions on how to add a new discovery method to the project. This includes setting up the necessary configurations, implementing the searcher class, and ensuring compatibility with the existing framework.
 
