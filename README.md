@@ -188,7 +188,15 @@ To evaluate with this searcher, run `eval.py` and provide the path to its config
 Read our [paper](.) for more information about the benchmark (or contact us ☺️). If you find our code and data helpful, please cite us with
 
 <pre>
-...
+@misc{llmsrbench,
+      title={LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models}, 
+      author={Parshin Shojaee and Ngoc-Hieu Nguyen and Kazem Meidani and Amir Barati Farimani and Khoa D Doan and Chandan K Reddy},
+      year={2025},
+      eprint={2504.10415},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2504.10415}, 
+}
 </pre>
 
 ## License
