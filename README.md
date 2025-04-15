@@ -70,11 +70,11 @@ vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 
    - `--local_llm_port`: The port number for the local LLM server (optional).
 
    Available dataset options include:
-   * lsrtransform (lsr-transform)
-   * matsci (lsr-synth)
-   * chem_react (lsr-synth)
-   * phys_osc (lsr-synth)
-   * bio_pop_growth (lsr-synth)
+   * `lsrtransform` (lsr-transform)
+   * `matsci` (lsr-synth)
+   * `chem_react` (lsr-synth)
+   * `phys_osc` (lsr-synth)
+   * `bio_pop_growth` (lsr-synth)
   
 For example, for running `llmsr` method on the `lsrtransform` dataset with open LLM backbone `llama31_8b` on local server, you can use the following command:
 
