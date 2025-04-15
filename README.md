@@ -62,7 +62,7 @@ vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 
    - `OPENAI_API_KEY`: Your OpenAI API key if you are utilizing OpenAI models.
    - `SGA_PYTHON_PATH`: The path to the Python executable in your SGA conda environment if you are using the SGA searcher.
 
-4. Execute the `eval.py` script with the required arguments:
+4. Execute the [eval.py](./eval.py) script with the required arguments:
    - `--searcher_config`: Path to the YAML configuration file for the searcher (mandatory).
    - `--dataset`: The name of the dataset to evaluate (mandatory).
    - `--resume_from`: The path to a previous run directory to continue from (optional).
@@ -82,7 +82,9 @@ For example, for running `llmsr` method on the `lsrtransform` dataset with open 
 python eval.py --dataset lsrtransform --searcher_config configs/llmsr_llama31_8b.yaml --local_llm_port 10005
 ```
 
-More evaluation scripts for running discovery methods on different datasets are provided in `example_script.sh` scripts. The execution will generate log files in the `logs` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
+More evaluation scripts for running discovery methods with different LLM backbones on different datasets are provided in `example_script.sh` scripts. 
+
+The execution of `eval.py` will generate log files in the `logs` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
 `--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953` will bypass already completed equations.
 
 
