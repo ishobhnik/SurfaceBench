@@ -51,7 +51,11 @@ In order to include a new method, please refer to the implementation section for
 
 ### How to run
 1. Activate the appropriate conda environment.
-2. Launch a local LLM server. While our implementation utilizes `vllm`, you can also opt for other libraries as long as you implement the necessary functionality in the searcher class. For example, to start the server with the vllm library, use the command: `vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 --port 10005`.
+2. Launch a local LLM server. While our implementation utilizes `vllm`, you can also opt for other libraries as long as you implement the necessary functionality in the searcher class. For example, to start the server with the vllm library, use the command:
+
+```
+vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 --port 10005
+```
 
 3. Configure the environment variables in the `.env` file. Duplicate `.env.example` to `.env` and specify the following:
    - `VLLM_API_KEY`: Your API key for the local vLLM server (e.g., 'token-abc123').
@@ -71,9 +75,16 @@ In order to include a new method, please refer to the implementation section for
    * chem_react (lsr-synth)
    * phys_osc (lsr-synth)
    * bio_pop_growth (lsr-synth)
+  
+For example, for running `llmsr` method on the `lsrtransform` dataset, you can use the following command:
 
-The execution will generate log files in the `logs` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
+```
+python eval.py --dataset lsrtransform --searcher_config configs/llmsr_llama31_8b.yaml --local_llm_port 10005
+```
+
+More evaluation scripts for running discovery methods on different datasets are provided in `example_script.sh` scripts. The execution will generate log files in the `logs` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
 `--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953` will bypass already completed equations.
+
 
 ### Project Structure
 The working directory structure will be as follows:
@@ -99,9 +110,6 @@ project
             └───<date>
 ```
 
-### Evaluation scripts
-
-Please take a look at `example_script.sh` for examples of usage with a local LLM.
 
 ## Implementing a new searcher
 
