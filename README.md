@@ -187,7 +187,7 @@ num_samples: 1000
 To evaluate with this searcher, run `eval.py` and provide the path to its configuration file; this will load the settings and initiate the evaluation process on the specified dataset.
 
 ## Citation
-Read our [paper](https://arxiv.org/abs/2504.10415) for more information about the benchmark (or contact us ☺️). If you find our code and data helpful, please cite us with
+Read our [paper](https://arxiv.org/abs/2504.10415) for more information about the benchmark (or contact us ☺️). If you find our code or data helpful, please cite us with
 
 <pre>
 @article{shojaee2025llm,
