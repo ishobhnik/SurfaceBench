@@ -1,6 +1,6 @@
 # `LLM-SRBench`: Benchmark for Scientific Equation Discovery or Symbolic Regression with LLMs
 
-This is the official repository for the paper "LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models"
+This is the official repository for the paper "[LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models](https://arxiv.org/abs/2504.10415)"
 
 [![Paper](https://img.shields.io/badge/arXiv-2504.10415-b31b1b.svg)](https://arxiv.org/abs/2504.10415)
 [![Benchmark Dataset](https://img.shields.io/badge/🤗_Dataset-llm--srbench-ffbd00.svg)](https://huggingface.co/datasets/nnheui/llm-srbench)
@@ -187,17 +187,14 @@ num_samples: 1000
 To evaluate with this searcher, run `eval.py` and provide the path to its configuration file; this will load the settings and initiate the evaluation process on the specified dataset.
 
 ## Citation
-Read our [paper](.) for more information about the benchmark (or contact us ☺️). If you find our code and data helpful, please cite us with
+Read our [paper](https://arxiv.org/abs/2504.10415) for more information about the benchmark (or contact us ☺️). If you find our code and data helpful, please cite us with
 
 <pre>
-@misc{llmsrbench,
-      title={LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models}, 
-      author={Parshin Shojaee and Ngoc-Hieu Nguyen and Kazem Meidani and Amir Barati Farimani and Khoa D Doan and Chandan K Reddy},
-      year={2025},
-      eprint={2504.10415},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2504.10415}, 
+@article{shojaee2025llm,
+  title={LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models},
+  author={Shojaee, Parshin and Nguyen, Ngoc-Hieu and Meidani, Kazem and Farimani, Amir Barati and Doan, Khoa D and Reddy, Chandan K},
+  journal={arXiv preprint arXiv:2504.10415},
+  year={2025}
 }
 </pre>
 
