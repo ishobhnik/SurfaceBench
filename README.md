@@ -76,16 +76,39 @@ vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype auto --api-key token-abc123 
    * `phys_osc` (lsr-synth)
    * `bio_pop_growth` (lsr-synth)
   
-For example, for running `llmsr` method on the `lsrtransform` dataset with open LLM backbone `llama31_8b` on local server, you can use the following command:
+For example, for running discovery methods on all the `lsrtransform` datasets with open LLM backbone `llama31_8b` on local server, you can use the following commands:
+
+LLM-SR:
 
 ```
 python eval.py --dataset lsrtransform --searcher_config configs/llmsr_llama31_8b.yaml --local_llm_port 10005
 ```
 
+LaSR:
+
+```
+python eval.py --dataset lsrtransform --searcher_config configs/lasr_llama31_8b.yaml --local_llm_port 10005
+```
+
+SGA method:
+
+```
+python eval.py --dataset lsrtransform --searcher_config configs/sga_llama31_8b.yaml --local_llm_port 10005
+```
+
+
+Direct method:
+
+```
+python eval.py --dataset lsrtransform --searcher_config configs/llmdirect_llama31_8b.yaml --local_llm_port 10005
+```
+
+
 More evaluation scripts for running discovery methods with different LLM backbones on different datasets are provided in `example_script.sh`. 
 
 The execution of [eval.py](./eval.py) will generate log files in the `logs/` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
 `--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953` will bypass already completed equations.
+
 
 
 ### Project Structure
