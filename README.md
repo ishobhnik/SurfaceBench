@@ -160,7 +160,7 @@ The input `task` will provide a description of the target equation, input variab
 
 An example of a searcher is
 ```python
-class DirectPromptingSearcher(BaseSearcher):
+class NewSearcher(BaseSearcher):
     def __init__(self, name, num_sample, api_type, api_model, api_url):
         super().__init__(name)
         self.num_samples = num_samples
@@ -199,15 +199,15 @@ class DirectPromptingSearcher(BaseSearcher):
 Once you’ve implemented your searcher, create a corresponding configuration file in the `configs/` folder. For example:
 
 ```yaml
-name: DirectPrompting-Llama31_8b
-class_name: DirectPromptingSearcher
+name: NewSearcher-Llama31_8b
+class_name: NewSearcher
 api_type: "vllm"
 api_model: "meta-llama/Llama-3.1-8B-Instruct"
 api_url: "http://localhost:{}/v1/"
 num_samples: 1000
 ```
 
-To evaluate with this searcher, run `eval.py` and provide the path to its configuration file; this will load the settings and initiate the evaluation process on the specified dataset.
+To evaluate with this searcher, run `eval.py` and provide the path to its corresponding configuration file; this will load the settings and initiate the evaluation process on the specified dataset.
 
 ## Citation
 Read our [paper](https://arxiv.org/abs/2504.10415) for more information about the benchmark (or contact us ☺️). If you find our code or data helpful, please cite us with
