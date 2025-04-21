@@ -107,7 +107,7 @@ python eval.py --dataset lsrtransform --searcher_config configs/llmdirect_llama3
 More evaluation scripts for running discovery methods with different LLM backbones on different datasets are provided in `example_script.sh`. 
 
 The execution of [eval.py](./eval.py) will generate log files in the `logs/` folder. You can resume your run using the `--resume_from <log_dir>` option. For instance, 
-`--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953` will bypass already completed equations.
+`--resume_from logs/MatSci/llmsr_4_10_10/01-16-2025_17-41-04-540953` will bypass already completed problems.
 
 
 
