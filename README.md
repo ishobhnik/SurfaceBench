@@ -18,7 +18,7 @@ and **LSR-Synth**, which introduces synthetic, discovery-driven problems requiri
 ## Updates
 
 * **1 May, 2025**: 🌟 LLM-SRBench is accepted for spotlight presentation at **ICML 2025**
-* **16 Apr, 2025**: 🌟 LLM-SRBench data and evaluation code is fully open-soruced
+* **16 Apr, 2025**: 🌟 LLM-SRBench [data](https://huggingface.co/datasets/nnheui/llm-srbench) and evaluation [code](https://github.com/deep-symbolic-mathematics/llm-srbench) is fully open-soruced
 * **14 Apr, 2025**: 🚀 The paper [LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models](https://arxiv.org/abs/2504.10415) is released on Arxiv
 
 ## Get Started
