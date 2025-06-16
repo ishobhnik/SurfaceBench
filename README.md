@@ -1,6 +1,6 @@
 # `LLM-SRBench`: Benchmark for Scientific Equation Discovery or Symbolic Regression with LLMs
 
-This is the official repository for the paper "[LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models](https://arxiv.org/abs/2504.10415)" **(ICML 2025 Spotlight)**
+This is the official repository for the paper "[LLM-SRBench: A New Benchmark for Scientific Equation Discovery with Large Language Models](https://arxiv.org/abs/2504.10415)" **(ICML 2025 Oral)**
 
 [![Paper](https://img.shields.io/badge/arXiv-2504.10415-b31b1b.svg)](https://arxiv.org/abs/2504.10415)
 [![Benchmark Dataset](https://img.shields.io/badge/🤗_Dataset-llm--srbench-ffbd00.svg)](https://huggingface.co/datasets/nnheui/llm-srbench)
