@@ -1,5 +1,0 @@
-### Code
-
-```python
-{code}
-```

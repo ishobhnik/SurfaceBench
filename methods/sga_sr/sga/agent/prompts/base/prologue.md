@@ -1,5 +1,0 @@
-## Problem Setup
-
-{context}
-
-{task}

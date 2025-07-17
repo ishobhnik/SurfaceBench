@@ -1,7 +1,7 @@
 import os
 
 from bench.searchers.base import BaseSearcher
-from bench.dataclasses import SEDTask, Equation, SearchResult
+from bench.surface_dataclasses import SEDTask, Equation, SearchResult
 
 from llmsr import pipeline, config, sampler, evaluator
 from .evaluator import LocalSandbox

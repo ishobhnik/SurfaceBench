@@ -1,8 +1,5 @@
 from typing import List
-
-from ..dataclasses import SEDTask, SearchResult
-
-
+from ..surface_dataclasses import SEDTask, SearchResult
 class BaseSearcher:
     def __init__(self, name) -> None:
         self._name = name

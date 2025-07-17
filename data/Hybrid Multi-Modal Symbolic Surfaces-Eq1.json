@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Hybrid_Dual_Domain_01",
+    "symbols": ["x", "y"],
+    "symbol_descs": ["x: horizontal coordinate", "y: vertical coordinate"],
+    "symbol_properties": [
+      "surface_type:explicit",
+      "category:Hybrid Multi-Modal Symbolic Surfaces",
+      "sub_category:Symbolic model emulator",
+      "subtype:Dual-Domain Boundary Surface",
+      "real_world_domain:Planning regime boundary"
+    ],
+    "expression": "log(1 + abs(x)) if y < 0 else exp(-y**2)",
+    "desc": "This is a piecewise function representing a planning regime boundary. When y < 0, z is defined by a logarithmic term involving x. When y >= 0, z is defined by an exponential term involving y."
+  }
+]

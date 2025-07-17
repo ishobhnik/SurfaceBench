@@ -1,3 +1,0 @@
-## Format Requirements
-
-{format}
