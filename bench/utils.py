@@ -273,3 +273,105 @@ def evaluate_expression(expression: str, symbols: List[str], input_values: np.nd
             Y.append(np.nan)
     
     return np.array(Y, dtype=np.float64)
+
+# if __name__ == "__main__":
+#     print("--- Testing utils.py surface evaluation functions ---")
+
+#     # Example 1: Explicit Surface (z = x^2 + y^2)
+#     print("\n--- Testing Explicit Surface (z = x^2 + y^2) ---")
+    
+#     # Define a simple explicit callable directly for testing purposes
+#     # In reality, this would come from LLM output parsed by get_surface_callable_from_llm_code
+#     def gt_z_explicit(x, y):
+#         return x**2 + y**2
+    
+#     def llm_z_explicit(x, y): # Slightly off for testing error
+#         return 0.9*x**2 + 1.1*y**2 + 0.1
+
+#     # Wrapper callables to match get_surface_callable_from_llm_code output format
+#     def wrapped_gt_explicit_callable(xy_inputs):
+#         x_vals = xy_inputs[:, 0]
+#         y_vals = xy_inputs[:, 1]
+#         z_vals = np.array([gt_z_explicit(x, y) for x, y in zip(x_vals, y_vals)])
+#         return np.stack((x_vals, y_vals, z_vals), axis=-1)
+
+#     def wrapped_llm_explicit_callable(xy_inputs):
+#         x_vals = xy_inputs[:, 0]
+#         y_vals = xy_inputs[:, 1]
+#         z_vals = np.array([llm_z_explicit(x, y) for x, y in zip(x_vals, y_vals)])
+#         return np.stack((x_vals, y_vals, z_vals), axis=-1)
+
+#     ranges_explicit = {'x': [-2, 2], 'y': [-2, 2]}
+#     pc_explicit_gt = generate_points_from_surface_callable(wrapped_gt_explicit_callable, 'explicit', param_ranges=ranges_explicit, num_points=2500)
+#     print(f"Generated Explicit GT PC shape: {pc_explicit_gt.shape if pc_explicit_gt is not None else 'None'}")
+
+#     pc_explicit_llm = generate_points_from_surface_callable(wrapped_llm_explicit_callable, 'explicit', param_ranges=ranges_explicit, num_points=2500)
+#     print(f"Generated Explicit LLM PC shape: {pc_explicit_llm.shape if pc_explicit_llm is not None else 'None'}")
+
+#     if pc_explicit_gt is not None and pc_explicit_llm is not None:
+#         cd_explicit = compute_chamfer_distance(pc_explicit_gt, pc_explicit_llm)
+#         hd_explicit = compute_hausdorff_distance(pc_explicit_gt, pc_explicit_llm)
+#         print(f"Chamfer Distance (Explicit): {cd_explicit:.4f}")
+#         print(f"Hausdorff Distance (Explicit): {hd_explicit:.4f}")
+
+#     # Example 2: Parametric Surface (Sphere)
+#     print("\n--- Testing Parametric Surface (Sphere) ---")
+    
+#     # Define simple parametric callables for testing
+#     def gt_x_param(u, v): return 1.0 * math.cos(u) * math.sin(v)
+#     def gt_y_param(u, v): return 1.0 * math.sin(u) * math.sin(v)
+#     def gt_z_param(u, v): return 1.0 * math.cos(v)
+
+#     def llm_x_param(u, v): return 0.95 * math.cos(u) * math.sin(v)
+#     def llm_y_param(u, v): return 1.05 * math.sin(u) * math.sin(v)
+#     def llm_z_param(u, v): return 1.0 * math.cos(v)
+
+#     # Wrapped callables
+#     def wrapped_gt_param_callable(uv_inputs):
+#         u_vals = uv_inputs[:, 0]
+#         v_vals = uv_inputs[:, 1]
+#         x_vals = np.array([gt_x_param(u, v) for u, v in zip(u_vals, v_vals)])
+#         y_vals = np.array([gt_y_param(u, v) for u, v in zip(u_vals, v_vals)])
+#         z_vals = np.array([gt_z_param(u, v) for u, v in zip(u_vals, v_vals)])
+#         return np.stack((x_vals, y_vals, z_vals), axis=-1)
+
+#     def wrapped_llm_param_callable(uv_inputs):
+#         u_vals = uv_inputs[:, 0]
+#         v_vals = uv_inputs[:, 1]
+#         x_vals = np.array([llm_x_param(u, v) for u, v in zip(u_vals, v_vals)])
+#         y_vals = np.array([llm_y_param(u, v) for u, v in zip(u_vals, v_vals)])
+#         z_vals = np.array([llm_z_param(u, v) for u, v in zip(u_vals, v_vals)])
+#         return np.stack((x_vals, y_vals, z_vals), axis=-1)
+
+#     ranges_parametric = {'u': [0, 2*np.pi], 'v': [0, np.pi]}
+#     pc_parametric_gt = generate_points_from_surface_callable(wrapped_gt_param_callable, 'parametric', param_ranges=ranges_parametric, num_points=2500)
+#     print(f"Generated Parametric GT PC shape: {pc_parametric_gt.shape if pc_parametric_gt is not None else 'None'}")
+
+#     pc_parametric_llm = generate_points_from_surface_callable(wrapped_llm_param_callable, 'parametric', param_ranges=ranges_parametric, num_points=2500)
+#     print(f"Generated Parametric LLM PC shape: {pc_parametric_llm.shape if pc_parametric_llm is not None else 'None'}")
+
+#     if pc_parametric_gt is not None and pc_parametric_llm is not None:
+#         cd_parametric = compute_chamfer_distance(pc_parametric_gt, pc_parametric_llm)
+#         hd_parametric = compute_hausdorff_distance(pc_parametric_gt, pc_parametric_llm)
+#         print(f"Chamfer Distance (Parametric): {cd_parametric:.4f}")
+#         print(f"Hausdorff Distance (Parametric): {hd_parametric:.4f}")
+
+#     # Example 3: Implicit Surface (f = x^2 + y^2 + z^2 - 1)
+#     print("\n--- Testing Implicit Surface (f = x^2 + y^2 + z^2 - 1) ---")
+    
+#     def gt_f_implicit(x, y, z): return x**2 + y**2 + z**2 - 1
+#     def llm_f_implicit(x, y, z): return x**2 + y**2 + z**2 - 1.1 # Slightly off
+
+#     ranges_implicit = {'x': [-1.5, 1.5], 'y': [-1.5, 1.5], 'z': [-1.5, 1.5]}
+    
+#     pc_implicit_gt_simulated = generate_points_from_surface_callable(gt_f_implicit, 'implicit', param_ranges=ranges_implicit, num_points=2500)
+#     print(f"Generated Implicit GT PC (simulated) shape: {pc_implicit_gt_simulated.shape if pc_implicit_gt_simulated is not None else 'None'}")
+
+#     pc_implicit_llm_simulated = generate_points_from_surface_callable(llm_f_implicit, 'implicit', param_ranges=ranges_implicit, num_points=2500)
+#     print(f"Generated Implicit LLM PC (simulated) shape: {pc_implicit_llm_simulated.shape if pc_implicit_llm_simulated is not None else 'None'}")
+    
+#     if pc_implicit_gt_simulated is not None and pc_implicit_llm_simulated is not None:
+#         cd_implicit = compute_chamfer_distance(pc_implicit_gt_simulated, pc_implicit_llm_simulated)
+#         hd_implicit = compute_hausdorff_distance(pc_implicit_gt_simulated, pc_implicit_llm_simulated)
+#         print(f"Chamfer Distance (Implicit): {cd_implicit:.4f}")
+#         print(f"Hausdorff Distance (Implicit): {hd_implicit:.4f}")
