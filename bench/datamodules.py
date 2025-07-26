@@ -85,3 +85,10 @@ def get_datamodule(name, root_folder=None):
         return SurfaceBenchDataModule()
     else:
         raise ValueError(f"Unknown datamodule name: {name}. Only 'surfacebench' is supported.")
+    
+
+# if __name__ == "__main__":
+#     datamodule = get_datamodule("surfacebench")
+#     datamodule.setup()
+
+#     print(f"Total problems loaded: {len(datamodule.problems)}")
