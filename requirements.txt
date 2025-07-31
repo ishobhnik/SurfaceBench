@@ -1,3 +1,12 @@
-python-dotenv
-datasets
-h5py
+datasets==4.0.0
+h5py==3.14.0
+huggingface_hub==0.34.1
+matplotlib==3.10.3
+numpy==2.3.2
+openai==1.97.1
+python-dotenv==1.1.1
+PyYAML==6.0.2
+scikit_learn==1.7.1
+scipy==1.16.0
+sympy==1.14.0
+torch==2.7.1
