@@ -21,14 +21,12 @@ from typing import Collection, Sequence, Type
 import numpy as np
 import time
 
-from llmsr import evaluator
-from llmsr import buffer
-from llmsr import config as config_lib
-from llmsr import profile
+from methods.llmsr import evaluator
+from methods.llmsr import buffer
+from methods.llmsr import config as config_lib
+from methods.llmsr import profile
 import requests
 import json
-import http.client
-import os
 
 import asyncio
 from openai import OpenAI, AsyncOpenAI
@@ -277,29 +275,29 @@ class LocalLLM(LLM):
         self._instruction_prompt = instruction_prompt
         self._trim = trim
 
-        if "openai" in self._api_url or "localhost" in self._api_url:
-            # client = OpenAI(
-            #     base_url=self._api_url,
-            #     api_key=self._api_key,
-            #     organization=os.environ["OPENAI_API_ORG"],
-            # )
-            self.client = AsyncOpenAI(
-                base_url=self._api_url,
-                api_key=self._api_key,
-                # organization=os.environ["OPENAI_API_ORG"],
-                timeout=60,
-            )
-        elif "api-inference.huggingface" in self._api_url:
-            # client = InferenceClient(
-            #     # base_url=self._api_url,
-            #     api_key=self._api_key,
-            #     headers={"x-use-cache": "false"}
-            # )
-            self.client = AsyncInferenceClient(
-                # base_url=self._api_url,
-                api_key=self._api_key,
-                headers={"x-use-cache": "false"}
-            )
+        # if "openai" in self._api_url or "localhost" in self._api_url:
+        #     # client = OpenAI(
+        #     #     base_url=self._api_url,
+        #     #     api_key=self._api_key,
+        #     #     organization=os.environ["OPENAI_API_ORG"],
+        #     # )
+        #     self.client = AsyncOpenAI(
+        #         base_url=self._api_url,
+        #         api_key=self._api_key,
+        #         # organization=os.environ["OPENAI_API_ORG"],
+        #         timeout=60,
+        #     )
+        # elif "api-inference.huggingface" in self._api_url:
+        #     # client = InferenceClient(
+        #     #     # base_url=self._api_url,
+        #     #     api_key=self._api_key,
+        #     #     headers={"x-use-cache": "false"}
+        #     # )
+        #     self.client = AsyncInferenceClient(
+        #         # base_url=self._api_url,
+        #         api_key=self._api_key,
+        #         headers={"x-use-cache": "false"}
+        #     )
 
 
     def draw_samples(self, prompt: str, config: config_lib.Config) -> Collection[str]:
