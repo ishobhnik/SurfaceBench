@@ -19,12 +19,12 @@ from __future__ import annotations
 # from collections.abc import Sequence
 from typing import Any, Tuple, Sequence
 
-from llmsr import code_manipulation
-from llmsr import config as config_lib
-from llmsr import evaluator
-from llmsr import buffer
-from llmsr import sampler
-from llmsr import profile
+from methods.llmsr import code_manipulation
+from methods.llmsr import config as config_lib
+from methods.llmsr import evaluator
+from methods.llmsr import buffer
+from methods.llmsr import sampler
+from methods.llmsr import profile
 
 
 def _extract_function_names(specification: str) -> Tuple[str, str]:

@@ -4,7 +4,7 @@ import h5py
 import datasets
 import warnings
 from typing import Optional, Any, List
-from surface_dataclasses import Equation, Problem, SEDTask
+from bench.surface_dataclasses import Equation, Problem, SEDTask
 from pathlib import Path
 from huggingface_hub import snapshot_download
 

@@ -1,41 +1,37 @@
-# Copyright 2023 DeepMind Technologies Limited
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
-""" Class for evaluating programs proposed by the Sampler."""
-from __future__ import annotations
-
 from abc import abstractmethod, ABC
 import ast
 import time
 from collections.abc import Sequence
 from functools import reduce
 import copy
-from typing import Any, Type
-import profile
+import math
+import numpy as np
+from typing import Any, Type, Dict, List, Optional, Tuple
 import multiprocessing
 import ctypes
 import numpy as np
+import warnings # Needed for warnings module
+from methods.llmsr import profile
 
-from llmsr import code_manipulation
-from llmsr import buffer
-from llmsr import evaluator_accelerate
+# Local imports from llmsr package
+import methods.llmsr.code_manipulation as code_manipulation
+from methods.llmsr import buffer
+from methods.llmsr import evaluator_accelerate
+import sys
+import os
+bench_dir_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'bench'))
+if bench_dir_path not in sys.path:
+    sys.path.insert(0, bench_dir_path)
 
+from bench.utils import ( # Import Chamfer, Hausdorff, and point generation utilities
+    get_surface_callable_from_llm_code,
+    generate_points_from_surface_callable,
+    compute_chamfer_distance,
+    compute_hausdorff_distance
+)
 
 class _FunctionLineVisitor(ast.NodeVisitor):
     """ Visitor that finds the last line number of a function with a given name."""
-
     def __init__(self, target_function_name: str) -> None:
         self._target_function_name: str = target_function_name
         self._function_end_line: int | None = None
@@ -66,9 +62,8 @@ def _trim_function_body(generated_code: str) -> str:
     while tree is None:
         try:
             tree = ast.parse(code)
-        
         except SyntaxError as e:
-            if e.lineno is None: # Nothing could be saved when syntaxError
+            if e.lineno is None:
                 return ''
             code = '\n'.join(code.splitlines()[:e.lineno - 1])
 
@@ -86,10 +81,10 @@ def _sample_to_program(
         version_generated: int | None,
         template: code_manipulation.Program,
         function_to_evolve: str,
-) -> tuple[code_manipulation.Function, str]:
+) -> Tuple[code_manipulation.Function, str]:
     """ 
     Return the compiled generated function and the full runnable program.
-    This function removes the content after the generated function body.
+    This function replaces the body of the `function_to_evolve` in the `template`.
     """
     body = _trim_function_body(generated_code)
     if version_generated is not None:
@@ -99,101 +94,107 @@ def _sample_to_program(
             target_name=function_to_evolve
         )
 
-    program = copy.deepcopy(template)
-    evolved_function = program.get_function(function_to_evolve)
+    program_copy = copy.deepcopy(template)
+    evolved_function = program_copy.get_function(function_to_evolve)
     evolved_function.body = body
     
-    return evolved_function, str(program)
+    return evolved_function, str(program_copy)
 
 
 class Sandbox(ABC):
     """ Sandbox for executing generated code. """
-
     @abstractmethod
     def run(
             self,
             program: str,
             function_to_run: str,
             function_to_evolve: str,
-            inputs: Any,  
-            test_input: str, 
+            inputs_for_equation: Any,
+            surface_type: str,
+            problem_params: Dict[str, Any],
             timeout_seconds: int,
             **kwargs
-    ) -> tuple[Any, bool]:
-        """ Return `function_to_run(test_input)` and whether execution succeeded. """
+    ) -> Tuple[Any, bool]:
+        """ Return `function_to_run(...)`'s result and whether execution succeeded. """
         raise NotImplementedError(
             'Must provide a sandbox for executing untrusted code.')
 
 
 class LocalSandbox(Sandbox):
     """
-    Secure environment for executing and evaluating LLM generated programs.
-    Prevents harmful operations, limits resource usage, and enforces timeouts.
-    Returns a 'score' for the executed program.
+    Secure environment for executing and evaluating LLM generated programs locally using multiprocessing.
     """
-
     def __init__(self, verbose=False, numba_accelerate=False):
-        """
-        Initialize Sandbox.
-        
-        Args:
-        verbose (bool): Enable detailed output.
-        numba_accelerate (bool): Use Numba for acceleration of evaluation (limited compatibility). 
-        """
         self._verbose = verbose
         self._numba_accelerate = numba_accelerate
 
 
     def run(self, program: str, function_to_run: str, function_to_evolve: str, 
-        inputs: Any, test_input: str, timeout_seconds: int, get_result_sleep_time=0.1, result_array_shape=None,  **kwargs) -> tuple[Any, bool]:
+            inputs_for_equation: List[np.ndarray],
+            surface_type: str, 
+            problem_params: Dict[str, Any],
+            timeout_seconds: int,
+            get_result_sleep_time=0.1, result_array_shape=None,  **kwargs) -> Tuple[Any, bool]:
         """
-        Execute the given program sample and return its score and success status.
+        Execute the given program sample in a subprocess and return its results.
         
-        Note: This sandbox is specific to the equation program skeleton discovery problem.
+        Args:
+            program: The full Python program string to execute.
+            function_to_run: The name of the function in 'program' to call (e.g., 'execute', 'evaluate').
+            function_to_evolve: The name of the function being evolved (e.g., 'equation').
+            inputs_for_equation: The input data for `function_to_run` (e.g., [x_arr, y_arr]).
+            surface_type: Type of surface ('explicit', 'parametric', 'implicit').
+            problem_params: Dictionary with problem-specific parameters (e.g., gt_samples_xyz, etc.).
+            timeout_seconds: Timeout for execution.
+            result_array_shape: Expected shape of the result from `function_to_run` (e.g., (N,3) for point clouds or (N,) for scalar/f-values).
         """
+        
+        # Use shared memory for large NumPy arrays between processes
+        array_size = reduce(lambda x,y: x*y, result_array_shape, 1) if result_array_shape else 0
+        shared_array_np = None
+        if array_size > 0:
+            shared_array_base = multiprocessing.RawArray(ctypes.c_double, array_size)
+            shared_array_np = np.ndarray(result_array_shape, dtype=np.float64, buffer=shared_array_base)
 
-        dataset = inputs[test_input]
         result_queue = multiprocessing.Queue()
-
-        if result_array_shape is not None:
-            array_size = reduce(lambda x,y: x*y, result_array_shape, 1)
-            shared_array = multiprocessing.RawArray(ctypes.c_double, array_size)
-            shared_array_np = np.ndarray(result_array_shape, dtype=np.float64, buffer=shared_array)
-        else:
-            shared_array_np = None
-
         process = multiprocessing.Process(
             target=self._compile_and_run_function,
-            args=(program, function_to_run, function_to_evolve, dataset, self._numba_accelerate, result_queue, shared_array_np)
+            args=(program, function_to_run, function_to_evolve, inputs_for_equation, 
+                  surface_type, problem_params,
+                  self._numba_accelerate, result_queue, shared_array_np)
         )
         process.start()
         process.join(timeout=timeout_seconds)
-
-        # if the process is not finished in time, terminate
         if process.is_alive():
             process.terminate()
             process.join()
-            results = None, False
-            # print("Terminated")
+            results = None
+            runs_ok = False
+            warnings.warn(f"Program execution timed out after {timeout_seconds}s for {function_to_run}.")
         else:
-            results = self._get_results(result_queue, sleep_time=get_result_sleep_time)
-        
-        if shared_array_np is not None:
-            results = shared_array_np, True
-        
-        if self._verbose:
-            self._print_evaluation_details(program, results, **kwargs)
+            status_from_queue, runs_ok = self._get_results(result_queue, sleep_time=get_result_sleep_time)
+            if not runs_ok:
+                results = None
+                if status_from_queue:
+                    warnings.warn(f"Program execution failed for {function_to_run}: {status_from_queue}")
+            else:
+                if shared_array_np is not None:
+                    results = shared_array_np
+                else:
+                    results = status_from_queue
 
-        return results
+        if self._verbose:
+            self._print_evaluation_details(program, (results, runs_ok), **kwargs)
+
+        return results, runs_ok
 
 
     def _get_results(self, queue, sleep_time=0.1):
-        for _ in range(5):
+        for _ in range(int(5 / sleep_time)):
             if not queue.empty():
                 return queue.get_nowait()
             time.sleep(sleep_time)
         return None, False
-
 
     def _print_evaluation_details(self, program, results, **kwargs):
         print('================= Evaluated Program =================')
@@ -201,39 +202,76 @@ class LocalSandbox(Sandbox):
         print(f'{str(function).strip()}\n-----------------------------------------------------')
         print(f'Score: {results}\n=====================================================\n\n')
 
-
-    def _compile_and_run_function(self, program, function_to_run, function_to_evolve, 
-                                  dataset, numba_accelerate, result_queue, shared_array_np=None):
+    def _compile_and_run_function(self, program: str, function_to_run: str, function_to_evolve: str, 
+                                  dataset_inputs_for_equation: List[np.ndarray],
+                                  surface_type: str, problem_params: Dict[str, Any],
+                                  numba_accelerate: bool, result_queue: multiprocessing.Queue, 
+                                  shared_array_np: Optional[np.ndarray]):
+        """
+        This function runs in a separate process. It executes the program.
+        It evaluates the LLM's `equation` function and prepares output for shared memory.
+        """
         try:
-            
-            # optimize the code (decorate function_to_run with @numba.jit())
             if numba_accelerate:
                 program = evaluator_accelerate.add_numba_decorator(
                     program=program,
                     function_to_evolve=function_to_evolve
                 )
             
-            # execute the program, map func/var/class to global namespace
-            all_globals_namespace = {}
-            exec(program, all_globals_namespace)
-            function_to_run = all_globals_namespace[function_to_run]
-            results = function_to_run(dataset)
+            all_globals_namespace = {
+                "np": np, "math": math,
+                "sin": math.sin, "cos": math.cos, "exp": math.exp, "log": math.log,
+                "sqrt": math.sqrt, "abs": abs, "fabs": math.fabs, "pi": math.pi,
+                "problem_params": problem_params,
+            }
+            for name in dir(math):
+                if not name.startswith('__'):
+                    all_globals_namespace[name] = getattr(math, name)
 
-            if not isinstance(results, (int, float, list, tuple, np.ndarray)):
+            exec(program, all_globals_namespace)
+            
+            function_to_run_callable = all_globals_namespace[function_to_run]
+            raw_results = function_to_run_callable(*dataset_inputs_for_equation)
+
+            processed_results = None
+            if surface_type == 'explicit':
+                if isinstance(raw_results, np.ndarray) and raw_results.ndim == 1:
+                    if len(dataset_inputs_for_equation) == 2 and dataset_inputs_for_equation[0].shape == raw_results.shape:
+                        processed_results = np.stack((dataset_inputs_for_equation[0], dataset_inputs_for_equation[1], raw_results), axis=-1)
+                    else:
+                        warnings.warn("Explicit surface output shape mismatch or inputs missing.")
+                else:
+                    warnings.warn("Explicit surface did not return 1D numpy array.")
+            elif surface_type == 'parametric':
+                if isinstance(raw_results, tuple) and all(isinstance(r, np.ndarray) for r in raw_results):
+                    processed_results = np.stack(raw_results, axis=-1)
+                else:
+                    warnings.warn("Parametric surface did not return tuple of numpy arrays.")
+            elif surface_type == 'implicit':
+                if isinstance(raw_results, np.ndarray) and raw_results.ndim == 1:
+                    processed_results = raw_results
+                else:
+                    warnings.warn("Implicit surface did not return 1D numpy array for f-values.")
+            else:
+                warnings.warn(f"Unknown surface type {surface_type} in sandbox processing.")
+            
+            if processed_results is None:
                 result_queue.put((None, False))
                 return
+
+            if shared_array_np is not None:
+                if processed_results.shape == shared_array_np.shape:
+                    shared_array_np[:] = processed_results
+                    result_queue.put((None, True))
+                else:
+                    warnings.warn(f"Processed result shape {processed_results.shape} does not match shared array shape {shared_array_np.shape}. Required: {shared_array_np.shape}")
+                    result_queue.put((None, False))
+            else:
+                warnings.warn("Shared array not provided for 3D surface results. Results might not be transferred correctly.")
+                result_queue.put((processed_results, True))
             
-            if isinstance(results, list) and shared_array_np is not None:
-                for i in range(len(results)):
-                    shared_array_np[i] = results[i]
-            result_queue.put((results, True))
-            
-        # if raise any exception, execution is failed
         except Exception as e:
-            print(f"Execution Error: {e}")
-            result_queue.put((None, False))
-
-
+            result_queue.put((str(e), False))
 
 def _calls_ancestor(program: str, function_to_evolve: str) -> bool:
     """ Return whether the generated function is calling an earlier version. """
@@ -281,10 +319,15 @@ class Evaluator:
         
         for current_input in self._inputs:
             test_output, runs_ok = self._sandbox.run(
-                program, self._function_to_run, self._function_to_evolve, self._inputs, current_input,
-                self._timeout_seconds
+                program=program,
+                function_to_run=self._function_to_run,
+                function_to_evolve=self._function_to_evolve,
+                inputs_for_equation=current_input['gt_samples_xyz'],
+                surface_type=current_input['surface_type'],
+                problem_params=current_input,
+                timeout_seconds=self._timeout_seconds,
+                result_array_shape=current_input.get('result_array_shape', (current_input['gt_samples_xyz'].shape[0], 3))
             )
-
             if runs_ok and not _calls_ancestor(program, self._function_to_evolve) and test_output is not None:
                 if not isinstance(test_output, (int, float)):
                     print(f'Error: test_output is {test_output}')

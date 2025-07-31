@@ -22,50 +22,49 @@ Note: 'call' refers to the function name throughout this module.
 """
 
 from __future__ import annotations
-
-import ast
+from typing import Iterator, MutableSet, Sequence, Any, Optional
 from collections.abc import Iterator, MutableSet, Sequence
 import dataclasses
 import io
+import ast
 import tokenize
-
-from absl import logging
+import warnings
 
 
 @dataclasses.dataclass
 class Function:
-    "" "A parsed Python function. """
+    """ A parsed Python function. """
 
     name: str
     args: str
     body: str
     return_type: str | None = None
     docstring: str | None = None
-    score: int | None = None  
+    score: float | None = None
     global_sample_nums: int | None = None  
     sample_time: float | None = None  
     evaluate_time: float | None = None  
+    scores_per_test: Optional[Any] = None # Added to store detailed scores per test (Chamfer, Hausdorff)
 
     def __str__(self) -> str:
-        return_type = f' -> {self.return_type}' if self.return_type else ''
+        return_type_str = f' -> {self.return_type}' if self.return_type else ''
 
-        function = f'def {self.name}({self.args}){return_type}:\n'
+        function = f'def {self.name}({self.args}){return_type_str}:\n'
         if self.docstring:
             new_line = '\n' if self.body else ''
             function += f'    """{self.docstring}"""{new_line}'
 
-        function += self.body + '\n\n'
+        function += self.body.strip()
         
-        return function
+        return function + '\n\n'
 
-    def __setattr__(self, name: str, value: str) -> None:
+    def __setattr__(self, name: str, value: Any) -> None:
         if name == 'body':
-            value = value.strip('\n')
+            value = str(value).strip('\n')
 
         if name == 'docstring' and value is not None:
-            if '"""' in value:
-                value = value.strip()
-                value = value.replace('"""', '')
+            value = str(value).strip() 
+            value = value.replace('"""', '')
         super().__setattr__(name, value)
 
 
@@ -126,7 +125,6 @@ class ProgramVisitor(ast.NodeVisitor):
             if not self._functions:
                 has_decorators = bool(node.decorator_list)
                 if has_decorators:
-                    # Find the minimum line number and retain the code
                     decorator_start_line = min(decorator.lineno for decorator in node.decorator_list)
                     self._preface = '\n'.join(self._codelines[:decorator_start_line - 1])
                 else:
@@ -137,8 +135,10 @@ class ProgramVisitor(ast.NodeVisitor):
             
             # Extract the docstring.
             docstring = None
-            if isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Str):
-                docstring = f'  """{ast.literal_eval(ast.unparse(node.body[0]))}"""'
+            if isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, (ast.Str, ast.Constant)):
+                docstring_node = node.body[0].value
+                docstring = docstring_node.s if isinstance(docstring_node, ast.Str) else docstring_node.value
+                docstring = str(docstring).strip()
                 if len(node.body) > 1:
                     body_start_line = node.body[1].lineno - 1
                 else:
@@ -161,15 +161,13 @@ class ProgramVisitor(ast.NodeVisitor):
 def text_to_program(text: str) -> Program:
     """ Return Program object by parsing input text using Python AST. """
     try:
-        # Program is composed of some preface (e.g. imports,
-        # classes, assignments, ...) followed by a sequence of functions.
         tree = ast.parse(text)
         visitor = ProgramVisitor(text)
         visitor.visit(tree)
         return visitor.return_program()
     
     except Exception as e:
-        logging.warning('Failed parsing %s', text)
+        warnings.warn(f'Failed parsing program: {text[:100]}... Error: {e}')
         raise e
 
 
@@ -186,18 +184,15 @@ def text_to_function(text: str) -> Function:
 
 def _tokenize(code: str) -> Iterator[tokenize.TokenInfo]:
     """Transform `code` into Python tokens."""
-    code_bytes = code.encode()
+    code_bytes = code.encode('utf-8')
     code_io = io.BytesIO(code_bytes)
-    
     return tokenize.tokenize(code_io.readline)
 
 
 def _untokenize(tokens: Sequence[tokenize.TokenInfo]) -> str:
     """Transform a list of Python tokens into code."""
     code_bytes = tokenize.untokenize(tokens)
-    
-    return code_bytes.decode()
-
+    return code_bytes.decode('utf-8')
 
 def _yield_token_and_is_call(code: str) -> Iterator[tuple[tokenize.TokenInfo, bool]]:
     """ Yield each token with a bool indicating whether it is a function call. """
@@ -225,7 +220,7 @@ def _yield_token_and_is_call(code: str) -> Iterator[tuple[tokenize.TokenInfo, bo
             yield prev_token, False
     
     except Exception as e:
-        logging.warning('Failed parsing %s', code)
+        warnings.warn(f'Failed parsing code for tokens: {code[:100]}... Error: {e}')
         raise e
 
 
@@ -263,7 +258,6 @@ def yield_decorated(code: str, module: str, name: str) -> Iterator[str]:
     tree = ast.parse(code)
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
-        # if isinstance(node, ast.ClassDef) or isinstance(node, ast.FunctionDef): 
             for decorator in node.decorator_list:
                 attribute = None
                 if isinstance(decorator, ast.Attribute):
@@ -271,6 +265,7 @@ def yield_decorated(code: str, module: str, name: str) -> Iterator[str]:
                 elif isinstance(decorator, ast.Call):
                     attribute = decorator.func
                 if (attribute is not None
+                        and isinstance(attribute.value, ast.Name)
                         and attribute.value.id == module
                         and attribute.attr == name):
                     yield node.name

@@ -4,9 +4,9 @@ import json
 import numpy as np
 import time
 import warnings
-from surface_dataclasses import Problem, SearchResult, Equation
-from searchers.base import BaseSearcher
-from utils import (
+from bench.surface_dataclasses import Problem, SearchResult, Equation
+from bench.searchers.base import BaseSearcher
+from bench.utils import (
     get_surface_callable_from_llm_code,
     generate_points_from_surface_callable,
     compute_chamfer_distance,
@@ -110,7 +110,7 @@ class EvaluationPipeline:
 
     def run_and_evaluate(self, searcher: BaseSearcher, problem: Problem):
         start_time = time.time()
-        search_results: List[SearchResult] = searcher.discover(problem.create_task())
+        search_results: List[SearchResult] = searcher.discover(problem)
         search_time = time.time() - start_time
 
         surface_type = "unknown"

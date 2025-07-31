@@ -18,11 +18,13 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Type
+from typing import Type, Optional
 import os
+import warnings
 
-from llmsr import sampler
-from llmsr import evaluator
+# Local imports from llmsr package
+from methods.llmsr import sampler
+from methods.llmsr import evaluator
 
 
 @dataclasses.dataclass(frozen=True)
@@ -40,7 +42,7 @@ class ExperienceBufferConfig:
     num_islands: int = 10 
     reset_period: int = 4 * 60 * 60
     cluster_sampling_temperature_init: float = 0.1
-    cluster_sampling_temperature_period: int = 30_000
+    cluster_sampling_temperature_period: int = 30_000 
 
 
 @dataclasses.dataclass(frozen=True)
@@ -51,19 +53,31 @@ class Config:
        experience_buffer: Evolution multi-population settings
        num_samplers (int): Number of parallel samplers
        num_evaluators (int): Number of parallel evaluators
-       samples_per_prompt (int): Number of hypotheses per prompt
-       evaluate_timeout_seconds (int): Hypothesis evaluation timeout
-       use_api (bool): API usage flag
+       samples_per_prompt (int): Number of hypotheses per prompt drawn from LLM for each prompt
+       evaluate_timeout_seconds (int): Hypothesis evaluation timeout in seconds. Crucial for complex surfaces.
+       use_api (bool): Flag to indicate whether to use an external LLM API (True) or a local server (False).
+       api_model (str): The name of the LLM model to use (e.g., "gpt-4o", "gemini-pro").
+       api_key (Optional[str]): The API key for the LLM. Can also be set via environment variable.
+       api_url (Optional[str]): Base URL for the LLM API (e.g., "https://api.openai.com/v1").
    """
     experience_buffer: ExperienceBufferConfig = dataclasses.field(default_factory=ExperienceBufferConfig)
     num_samplers: int = 1 
     num_evaluators: int = 1
     samples_per_prompt: int = 4
-    evaluate_timeout_seconds: int = 30  
-    use_api: bool = False
-    api_model: str = "gpt-3.5-turbo"
+    evaluate_timeout_seconds: int = 60 # Increased default for surface evaluation
+    use_api: bool = True
+    api_model: str = "gpt-4o"
+    api_key: Optional[str] = None
+    api_url: str = "https://api.openai.com/v1"
 
-
+    def __post_init__(self):
+        if self.api_key is None and self.use_api and "openai" in self.api_url:
+            object.__setattr__(self, 'api_key', os.getenv("OPENAI_API_KEY"))
+        elif self.api_key is None and self.use_api and "huggingface" in self.api_url:
+            object.__setattr__(self, 'api_key', os.getenv("HF_API_KEY"))
+        if self.use_api and not self.api_key:
+            warnings.warn("API usage is enabled, but no API key is set. LLM calls will likely fail.")
+            
 @dataclasses.dataclass()
 class ClassConfig:
     llm_class: Type[sampler.LLM]
